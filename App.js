@@ -15,7 +15,12 @@ import {
   View,
 } from "react-native";
 import Modal from "react-native-modal";
-import Animated, { useAnimatedStyle, useAnimatedGestureHandler, useSharedValue } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
+  useSharedValue,
+  interpolate,
+} from "react-native-reanimated";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -23,6 +28,12 @@ import {
 
 export default function App() {
   const [isModalVisible, setModalVisible] = useState(false);
+  const [textElements, setTextElements] = useState([
+    "hello",
+    "world",
+    "good",
+    "day",
+  ]);
 
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
@@ -32,24 +43,26 @@ export default function App() {
   const y = useSharedValue(0);
 
   const gestureHandler = useAnimatedGestureHandler({
-       onStart:(e,c)=>{
-        c.startX = x.value;
-        c.startY = y.value;
-       },
-       onActive:(e,c)=>{
-        x.value = c.startX + e.translationX;
-        y.value = c.startY + e.translationY;
-       },
-       onEnd:(e,c)=>{
-        x.value = c.startX + e.translationX;
-        y.value = c.startY + e.translationY;
-       }
+    onStart: (e, c) => {
+      c.startX = x.value;
+      c.startY = y.value;
+    },
+    onActive: (e, c) => {
+      x.value = c.startX + e.translationX;
+      y.value = c.startY + e.translationY;
+    },
+    onEnd: (e, c) => {
+      x.value = c.startX + e.translationX;
+      y.value = c.startY + e.translationY;
+    },
   });
 
-  const animatedStyle = useAnimatedStyle(()=>{
+
+  const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform:[{translateX:x.value},{translateY:y.value}]
-    }
+      transform: [{ translateX: x.value }, { translateY: y.value }],
+      // borderWidth:interpolate(x.value,)
+    };
   });
 
   return (
@@ -72,11 +85,22 @@ export default function App() {
         <FontAwesome name="refresh" size={34} color="#fff" />
         <Feather name="save" size={34} color="#fff" />
       </View>
-      <View style={styles.editorBoxContainer}>
-        <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View style={[styles.box,animatedStyle]} ></Animated.View>
-        </PanGestureHandler>
-      </View>
+        <View style={styles.editorBoxContainer}>
+      <PanGestureHandler onGestureEvent={gestureHandler} >
+          {/* <Animated.FlatList
+            data={textElements}  
+            renderItem={({item,index})=>{
+              console.log(item)
+               return (
+                <Animated.View>
+                  <Animated.Text>{item}</Animated.Text>
+                </Animated.View>
+                );
+              }}
+            /> */}
+          <Animated.View style={[styles.box, animatedStyle]}></Animated.View>
+      </PanGestureHandler>
+        </View>
       <View style={styles.bottomContainer}>
         <TouchableOpacity onPress={toggleModal}>
           <FontAwesome name="pencil" size={34} color="#fff" />
@@ -135,9 +159,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   box: {
-    height: 150,
+    height: 50,
     width: 150,
-    backgroundColor: "green",
+    backgroundColor: "grey",
     borderRadius: 5,
+    margin:20,
   },
 });
