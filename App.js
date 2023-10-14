@@ -15,8 +15,11 @@ import {
   View,
 } from "react-native";
 import Modal from "react-native-modal";
-import { AnimateStyle} from "react-native-reanimated";
-import { GestureHandlerRootView} from "react-native-gesture-handler"
+import Animated, { useAnimatedStyle, useAnimatedGestureHandler, useSharedValue } from "react-native-reanimated";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+} from "react-native-gesture-handler";
 
 export default function App() {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -24,6 +27,30 @@ export default function App() {
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
+
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+
+  const gestureHandler = useAnimatedGestureHandler({
+       onStart:(e,c)=>{
+        c.startX = x.value;
+        c.startY = y.value;
+       },
+       onActive:(e,c)=>{
+        x.value = c.startX + e.translationX;
+        y.value = c.startY + e.translationY;
+       },
+       onEnd:(e,c)=>{
+        x.value = c.startX + e.translationX;
+        y.value = c.startY + e.translationY;
+       }
+  });
+
+  const animatedStyle = useAnimatedStyle(()=>{
+    return {
+      transform:[{translateX:x.value},{translateY:y.value}]
+    }
+  });
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -46,9 +73,9 @@ export default function App() {
         <Feather name="save" size={34} color="#fff" />
       </View>
       <View style={styles.editorBoxContainer}>
-        {/* <Animated.View>
-        <View style={styles.box} />
-      </Animated.View> */}
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View style={[styles.box,animatedStyle]} ></Animated.View>
+        </PanGestureHandler>
       </View>
       <View style={styles.bottomContainer}>
         <TouchableOpacity onPress={toggleModal}>
@@ -108,10 +135,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   box: {
-    height: 50,
+    height: 150,
     width: 150,
-    backgroundColor: "grey",
+    backgroundColor: "green",
     borderRadius: 5,
   },
 });
-
