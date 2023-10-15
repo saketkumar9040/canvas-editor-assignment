@@ -13,6 +13,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Dimensions,
 } from "react-native";
 import Modal from "react-native-modal";
 import Animated, {
@@ -20,11 +21,14 @@ import Animated, {
   useAnimatedGestureHandler,
   useSharedValue,
   interpolate,
+  Extrapolate,
 } from "react-native-reanimated";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
 } from "react-native-gesture-handler";
+
+const { width, height } = Dimensions.get("window");
 
 export default function App() {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -43,25 +47,46 @@ export default function App() {
   const y = useSharedValue(0);
 
   const gestureHandler = useAnimatedGestureHandler({
-    onStart: (e, c) => {
-      c.startX = x.value;
-      c.startY = y.value;
+    onStart: (event, context) => {
+      //  CONTEXT IS THE STORED VALUE
+      context.startX = x.value; //  EVENT IS THE CURRENT VALUE
+      context.startY = y.value;
     },
-    onActive: (e, c) => {
-      x.value = c.startX + e.translationX;
-      y.value = c.startY + e.translationY;
+    onActive: (event, context) => {
+      // console.log(event.translationX)
+      // console.log(event.translationY)
+      console.log("x:" + x.value);
+      console.log("y:" + y.value);
+      if (x.value > 100 || x.value < -100) {
+        return;
+      }
+      if (y.value > 520 || y.value < -27) {
+        return;
+      }
+      x.value = context.startX + event.translationX;
+      y.value = context.startY + event.translationY;
     },
-    onEnd: (e, c) => {
-      x.value = c.startX + e.translationX;
-      y.value = c.startY + e.translationY;
+    onEnd: (event, context) => {
+      if (x.value > 100) {
+        return (x.value = 100);
+      }
+      if (x.value < -100) {
+        return (x.value = -100);
+      }
+      if (y.value > 522) {
+        return (y.value = 519);
+      }
+      if (y.value < -27) {
+        return (y.value = -27);
+      }
+      x.value = context.startX + event.translationX;
+      y.value = context.startY + event.translationY;
     },
   });
-
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ translateX: x.value }, { translateY: y.value }],
-      // borderWidth:interpolate(x.value,)
     };
   });
 
@@ -85,8 +110,8 @@ export default function App() {
         <FontAwesome name="refresh" size={34} color="#fff" />
         <Feather name="save" size={34} color="#fff" />
       </View>
-        <View style={styles.editorBoxContainer}>
-      <PanGestureHandler onGestureEvent={gestureHandler} >
+      <View style={styles.editorBoxContainer}>
+        <PanGestureHandler onGestureEvent={gestureHandler}>
           {/* <Animated.FlatList
             data={textElements}  
             renderItem={({item,index})=>{
@@ -99,8 +124,8 @@ export default function App() {
               }}
             /> */}
           <Animated.View style={[styles.box, animatedStyle]}></Animated.View>
-      </PanGestureHandler>
-        </View>
+        </PanGestureHandler>
+      </View>
       <View style={styles.bottomContainer}>
         <TouchableOpacity onPress={toggleModal}>
           <FontAwesome name="pencil" size={34} color="#fff" />
@@ -163,6 +188,6 @@ const styles = StyleSheet.create({
     width: 150,
     backgroundColor: "grey",
     borderRadius: 5,
-    margin:20,
+    margin: 20,
   },
 });
